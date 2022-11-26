@@ -1,0 +1,63 @@
+version: "3.8"
+services:
+
+    # PHP service
+    app:
+        build: ./docker/php
+        image: core_app
+        container_name: core_app
+        working_dir: /var/www/
+        volumes:
+            - ./project:/var/www
+            - ./log/php:/srv/var/log
+        networks:
+            - core-network
+
+    # MariaDB database service
+    db:
+        image: mariadb:10.3
+        container_name: core_mariadb_10.3
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+        env_file:
+            - ./.env
+        volumes:
+            - "./mysql/:/var/lib/mysql"
+        networks:
+            - core-network
+
+    # phpMyAdmin service
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: core_phpmyadmin
+        environment:
+            PMA_HOST: db
+            PMA_PORT: 3306
+            PMA_ARBITRARY: 1
+        restart: always
+        ports:
+            - 8080:80
+        networks:
+            - core-network
+
+    # Nginx service
+    nginx:
+        image: nginx:alpine
+        container_name: core_nginx
+        ports:
+            - 8000:80
+        volumes:
+            - ./project:/var/www
+            - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+            - ./log/nginx:/var/log/nginx/
+        networks:
+            - core-network
+
+networks:
+    core-network:
+        driver: bridge
