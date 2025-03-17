@@ -1,22 +1,21 @@
-version: "3.8"
 services:
 
     # PHP service
     app:
         build: ./docker/php
-        image: core_app
-        container_name: core_app
+        image: php
+        container_name: php
         working_dir: /var/www/
         volumes:
             - ./project:/var/www
             - ./log/php:/srv/var/log
         networks:
-            - core-network
+            - network
 
     # MariaDB database service
     db:
         image: mariadb:10.3
-        container_name: core_mariadb_10.3
+        container_name: mariadb
         ports:
             - "3306:3306"
         environment:
@@ -27,28 +26,26 @@ services:
         env_file:
             - ./.env
         volumes:
-            - "./mysql/:/var/lib/mysql"
+            - db_data:/var/lib/mysql
+            - ./docker/mysql-init:/docker-entrypoint-initdb.d
         networks:
-            - core-network
+            - network
 
-    # phpMyAdmin service
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
-        container_name: core_phpmyadmin
-        environment:
-            PMA_HOST: db
-            PMA_PORT: 3306
-            PMA_ARBITRARY: 1
-        restart: always
+    # Adminer service
+    adminer:
+        image: adminer
+        container_name: adminer
         ports:
-            - 8080:80
+            - 8081:8080
         networks:
-            - core-network
+            - network
+        depends_on:
+            - db
 
     # Nginx service
     nginx:
         image: nginx:alpine
-        container_name: core_nginx
+        container_name: nginx
         ports:
             - 8000:80
         volumes:
@@ -56,8 +53,12 @@ services:
             - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
             - ./log/nginx:/var/log/nginx/
         networks:
-            - core-network
+            - network
 
 networks:
-    core-network:
+    network:
         driver: bridge
+
+volumes:
+    db_data:
+        driver: local
