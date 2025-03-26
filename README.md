@@ -1,4 +1,4 @@
-# Entorno de desarrollo PHP 8.2 con PHP-FPM, Nginx y MariaDB 10.3
+# Entorno de desarrollo PHP 8.2 con PHP-FPM, Nginx, MariaDB 10.3 y persistencia de datos
 
 _Necesita tener instalado Docker y Docker Compose en su servidor para ejecutar este entorno_
 
